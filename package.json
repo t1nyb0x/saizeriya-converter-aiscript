@@ -1,0 +1,12 @@
+{
+  "name": "saizeriya-converter",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs",
+    "test": "node build.mjs && node --test --test-force-exit test/*.test.mjs"
+  },
+  "devDependencies": {
+    "@syuilo/aiscript": "1.2.1"
+  }
+}

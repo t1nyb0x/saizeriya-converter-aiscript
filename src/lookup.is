@@ -1,0 +1,26 @@
+// 入力された番号をメニューに変換する
+
+// 前後の空白を取り除き、全角数字（０〜９）を半角にそろえる
+@normalize(input) {
+	input.trim().to_char_arr().map(@(c) {
+		let cp = c.codepoint_at(0)
+		if (cp >= 65296 && cp <= 65305) Str:from_codepoint(cp - 65248) else c
+	}).join()
+}
+
+// 番号に対応するメニューを返す。なければ null
+@lookup(code) {
+	if Obj:has(MENU, code) MENU[code] else null
+}
+
+@format(code, item) {
+	`{code} {item.name} {item.price}円（税込）`
+}
+
+// 入力をそのまま表示用の文字列にする。空入力なら空文字
+@describe(input) {
+	let code = normalize(input)
+	if (code == "") return ""
+	let item = lookup(code)
+	if (item == null) `{code} はメニューにありませんでした` else format(code, item)
+}

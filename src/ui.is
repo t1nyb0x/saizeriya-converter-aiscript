@@ -1,0 +1,24 @@
+// AiScript App ウィジェットの画面
+
+var input = ""
+
+let result = Ui:C:text({ text: "番号を入れて「調べる」を押してください" })
+
+let search = @() {
+	let message = describe(input)
+	result.update({ text: if (message == "") "番号を入れてください" else message })
+}
+
+Ui:render([
+	Ui:C:textInput({
+		label: "メニュー番号"
+		caption: "例: 2101"
+		onInput: @(v) { input = v }
+	})
+	Ui:C:button({
+		text: "調べる"
+		primary: true
+		onClick: search
+	})
+	result
+])
