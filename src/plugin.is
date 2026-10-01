@@ -1,0 +1,15 @@
+// プラグイン本体: ノートを表示する直前に、本文と CW の番号にメニュー名を添える
+// 書き換わるのは自分の画面の表示だけで、ノート自体は変更しない
+
+@annotate_note(note) {
+	if (note.text != null) note.text = annotate(note.text)
+	if (note.cw != null) note.cw = annotate(note.cw)
+	note
+}
+
+Plugin:register_note_view_interruptor(@(note) {
+	annotate_note(note)
+	// リノート・引用元のノート
+	if (note.renote != null) annotate_note(note.renote)
+	note
+})

@@ -1,0 +1,8 @@
+### {
+	name: "サイゼリヤ番号変換"
+	version: "1.0.0"
+	author: "t1nyb0x"
+	description: "タイムラインのノートにあるサイゼリヤのメニュー番号の後ろに、メニュー名を添えて表示します"
+	permissions: []
+	config: {}
+}
