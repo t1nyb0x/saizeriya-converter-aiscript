@@ -1,0 +1,87 @@
+// ノート本文中の番号の後ろにメニュー名を添える
+
+// この文字の直後にある番号は変換しない（ハッシュタグ・メンション・絵文字・パスなど）
+let ANNOTATE_BLOCKED_PREV = "#@:_/.-=?&%+~"
+
+// 半角または全角の数字か
+@is_digit(c) {
+	let cp = c.codepoint_at(0)
+	(cp >= 48 && cp <= 57) || (cp >= 65296 && cp <= 65305)
+}
+
+// 半角英字か
+@is_ascii_letter(c) {
+	let cp = c.codepoint_at(0)
+	(cp >= 65 && cp <= 90) || (cp >= 97 && cp <= 122)
+}
+
+@is_space(c) {
+	c.trim() == ""
+}
+
+// i 文字目から URL が始まるか
+@starts_url(chars, i) {
+	if (chars[i] != "h") return false
+	chars.slice(i, i + 7).join() == "http://" || chars.slice(i, i + 8).join() == "https://"
+}
+
+// 番号の前後の文字から、変換してよい位置にあるかを判定する
+@annotatable(prev, next) {
+	if (prev != "" && (is_ascii_letter(prev) || ANNOTATE_BLOCKED_PREV.incl(prev))) return false
+	if (next != "" && is_ascii_letter(next)) return false
+	true
+}
+
+@annotate(text) {
+	let chars = text.to_char_arr()
+	let len = chars.len
+	let buf = []
+	var i = 0
+	// バッククォートで囲まれたコードの中か（``` のコードブロックも同じ扱いになる）
+	var in_code = false
+	loop {
+		if (i >= len) break
+		let c = chars[i]
+
+		if (c == "`") {
+			in_code = !in_code
+			buf.push(c)
+			i += 1
+			continue
+		}
+		if (in_code || !(is_digit(c) || starts_url(chars, i))) {
+			buf.push(c)
+			i += 1
+			continue
+		}
+
+		// URL は空白まで読み飛ばす
+		if (starts_url(chars, i)) {
+			loop {
+				if (i >= len) break
+				if (is_space(chars[i])) break
+				buf.push(chars[i])
+				i += 1
+			}
+			continue
+		}
+
+		// 数字の並びを最後まで読む
+		var j = i
+		loop {
+			if (j >= len) break
+			if (!is_digit(chars[j])) break
+			j += 1
+		}
+		let digits = chars.slice(i, j).join()
+		buf.push(digits)
+		let prev = if (i == 0) "" else chars[i - 1]
+		let next = if (j >= len) "" else chars[j]
+		if (j - i == 4 && annotatable(prev, next)) {
+			let item = lookup(normalize(digits))
+			if (item != null) buf.push(`（{item.name}）`)
+		}
+		i = j
+	}
+	buf.join()
+}

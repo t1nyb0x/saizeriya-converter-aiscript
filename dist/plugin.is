@@ -1,0 +1,254 @@
+/// @ 1.2.1
+// サイゼリヤ番号変換 - このファイルは build.mjs で生成しています。直接編集しないでください
+
+### {
+	name: "サイゼリヤ番号変換"
+	version: "1.0.0"
+	author: "t1nyb0x"
+	description: "タイムラインのノートにあるサイゼリヤのメニュー番号の後ろに、メニュー名を添えて表示します"
+	permissions: []
+	config: {}
+}
+
+// サイゼリヤ グランドメニューの番号対応表
+// 出典: サイゼリヤ公式 メニューブック「グランドメニュー」(menu2606_j, 2026.06 A 版)
+//   https://book.saizeriya.co.jp/library/site/menu1907/book-lists/
+// 取得日: 2026-10-01
+// 価格は税込。店舗によって取り扱いが異なる商品があります
+let MENU = {
+	"1202": { name: "小エビのサラダ", price: 350 },
+	"1205": { name: "わかめのサラダ", price: 350 },
+	"1209": { name: "チキンのサラダ", price: 350 },
+	"1301": { name: "コーンクリームスープ", price: 150 },
+	"1302": { name: "冷たいパンプキンスープ", price: 180 },
+	"1305": { name: "田舎風ミネストローネ", price: 300 },
+	"1307": { name: "たまねぎのズッパ", price: 300 },
+	"1401": { name: "辛味チキン", price: 300 },
+	"1402": { name: "アロスティチーニ", price: 400 },
+	"1403": { name: "ほうれん草のソテー", price: 200 },
+	"1404": { name: "ポップコーンシュリンプ", price: 300 },
+	"1405": { name: "エスカルゴのオーブン焼き", price: 400 },
+	"1406": { name: "小エビのカクテル", price: 280 },
+	"1407": { name: "チョリソー", price: 400 },
+	"1408": { name: "蒸し鶏の香味ソース", price: 280 },
+	"1410": { name: "ムール貝のガーリック焼き", price: 400 },
+	"1413": { name: "キャロットラペ", price: 200 },
+	"1416": { name: "ポテトのグリル", price: 300 },
+	"1417": { name: "バッファローモッツァレラのカプレーゼ", price: 430 },
+	"1422": { name: "生ハム", price: 320 },
+	"1423": { name: "生ハムとバッファローモッツァレラの盛合せ", price: 500 },
+	"1425": { name: "柔らか青豆の温サラダ", price: 200 },
+	"1452": { name: "アロスティチーニ Wサイズ", price: 800 },
+	"2101": { name: "ミラノ風ドリア", price: 300 },
+	"2103": { name: "半熟卵のミラノ風ドリア", price: 350 },
+	"2108": { name: "焼チーズ ミラノ風ドリア", price: 350 },
+	"2110": { name: "タラコとポップコーンシュリンプのドリア", price: 400 },
+	"2115": { name: "ポップコーンシュリンプとタラコのクリームグラタン", price: 430 },
+	"2203": { name: "バッファローモッツァレラのマルゲリータピザ", price: 400 },
+	"2204": { name: "野菜ときのこのピザ", price: 400 },
+	"2206": { name: "たっぷりコーンのピザ", price: 400 },
+	"2208": { name: "ソーセージピザ", price: 400 },
+	"2301": { name: "タラコソースシシリー風", price: 400 },
+	"2303": { name: "ペペロンチーノ", price: 300 },
+	"2304": { name: "パルマ風スパゲッティ", price: 400 },
+	"2305": { name: "カルボナーラ", price: 500 },
+	"2306": { name: "ミートソースボロニア風", price: 400 },
+	"2310": { name: "スープ入り塩味ボンゴレ", price: 500 },
+	"2316": { name: "半熟卵のミートソースボロニア風", price: 450 },
+	"2317": { name: "半熟卵のペペロンチーノ", price: 350 },
+	"2318": { name: "半熟卵のカルボナーラ", price: 550 },
+	"2320": { name: "小エビのタラコソース", price: 540 },
+	"2321": { name: "きのことほうれん草のクリームスパゲッティ", price: 600 },
+	"2325": { name: "ペンネアラビアータ", price: 430 },
+	"2328": { name: "イカの墨入りセピアソース", price: 500 },
+	"2403": { name: "イタリアンハンバーグ", price: 500 },
+	"2406": { name: "ハンバーグステーキ", price: 400 },
+	"2407": { name: "ディアボラ風ハンバーグ", price: 500 },
+	"2417": { name: "ラム（仔羊）のランプステーキ", price: 1090 },
+	"2418": { name: "ミックスグリル", price: 650 },
+	"2419": { name: "ビーフステーキ", price: 1090 },
+	"3101": { name: "ライス", price: 150 },
+	"3102": { name: "ラージライス", price: 200 },
+	"3103": { name: "スモールライス", price: 100 },
+	"3110": { name: "フォッカチオ", price: 150 },
+	"3111": { name: "ガーリックフォッカチオ", price: 200 },
+	"3112": { name: "シナモンフォッカチオ", price: 200 },
+	"3113": { name: "タラコフォッカチオ", price: 250 },
+	"3114": { name: "チーズフォッカチオ", price: 250 },
+	"3201": { name: "ティラミス クラシコ（すぐに）", price: 300 },
+	"3205": { name: "ミルクジェラート（すぐに）", price: 250 },
+	"3206": { name: "イタリアンプリン（すぐに）", price: 250 },
+	"3207": { name: "チョコレートケーキ（すぐに）", price: 300 },
+	"3212": { name: "プリンとティラミス クラシコの盛合せ（すぐに）", price: 500 },
+	"3213": { name: "トリフアイスクリーム（すぐに）", price: 350 },
+	"3214": { name: "ジェラート＆シナモンフォッカチオ（すぐに）", price: 450 },
+	"3215": { name: "コーヒーゼリー＆ミルクジェラート（すぐに）", price: 350 },
+	"3216": { name: "チョコレートケーキ＆ミルクジェラート（すぐに）", price: 500 },
+	"3301": { name: "生ビール ジョッキ", price: 400 },
+	"3302": { name: "生ビール グラスビール", price: 280 },
+	"3303": { name: "アサヒ ドライゼロ", price: 250 },
+	"3304": { name: "キリン 氷結 シチリア産レモン", price: 350 },
+	"3306": { name: "グラッパ", price: 300 },
+	"3401": { name: "グラスワイン（赤）", price: 100 },
+	"3402": { name: "グラスワイン（白）", price: 100 },
+	"3403": { name: "デカンタ小（赤）", price: 200 },
+	"3404": { name: "デカンタ小（白）", price: 200 },
+	"3405": { name: "デカンタ大（赤）", price: 400 },
+	"3406": { name: "デカンタ大（白）", price: 400 },
+	"3407": { name: "マグナム（赤）", price: 1100 },
+	"3408": { name: "マグナム（白）", price: 1100 },
+	"3412": { name: "ランブルスコロゼ", price: 1100 },
+	"3413": { name: "ドンラファエロ", price: 1100 },
+	"3414": { name: "ランブルスコセッコ", price: 1100 },
+	"3415": { name: "ベルデッキオ", price: 1100 },
+	"3416": { name: "キャンティ", price: 1100 },
+	"3419": { name: "キャンティ ルフィナ", price: 2200 },
+	"3901": { name: "ティラミス クラシコ（あとで）", price: 300 },
+	"3905": { name: "ミルクジェラート（あとで）", price: 250 },
+	"3906": { name: "イタリアンプリン（あとで）", price: 250 },
+	"3907": { name: "チョコレートケーキ（あとで）", price: 300 },
+	"3912": { name: "プリンとティラミス クラシコの盛合せ（あとで）", price: 500 },
+	"3913": { name: "トリフアイスクリーム（あとで）", price: 350 },
+	"3914": { name: "ジェラート＆シナモンフォッカチオ（あとで）", price: 450 },
+	"3915": { name: "コーヒーゼリー＆ミルクジェラート（あとで）", price: 350 },
+	"3916": { name: "チョコレートケーキ＆ミルクジェラート（あとで）", price: 500 },
+	"4301": { name: "トッピング半熟卵", price: 50 },
+	"4304": { name: "トッピング野菜ソース", price: 100 },
+	"4307": { name: "トッピング粉チーズ", price: 100 },
+	"5101": { name: "セットドリンクバー", price: 200 },
+	"5102": { name: "キッズドリンクバー", price: 100 },
+	"5103": { name: "単品ドリンクバー", price: 300 },
+	"5305": { name: "サイゼリヤドレッシング（500ml）", price: 500 },
+	"5306": { name: "エクストラ・バージン・オリーブオイル（500ml）", price: 1200 },
+}
+
+// 入力された番号をメニューに変換する
+
+// 前後の空白を取り除き、全角数字（０〜９）を半角にそろえる
+@normalize(input) {
+	input.trim().to_char_arr().map(@(c) {
+		let cp = c.codepoint_at(0)
+		if (cp >= 65296 && cp <= 65305) Str:from_codepoint(cp - 65248) else c
+	}).join()
+}
+
+// 番号に対応するメニューを返す。なければ null
+@lookup(code) {
+	if Obj:has(MENU, code) MENU[code] else null
+}
+
+@format(code, item) {
+	`{code} {item.name} {item.price}円（税込）`
+}
+
+// 入力をそのまま表示用の文字列にする。空入力なら空文字
+@describe(input) {
+	let code = normalize(input)
+	if (code == "") return ""
+	let item = lookup(code)
+	if (item == null) `{code} はメニューにありませんでした` else format(code, item)
+}
+
+// ノート本文中の番号の後ろにメニュー名を添える
+
+// この文字の直後にある番号は変換しない（ハッシュタグ・メンション・絵文字・パスなど）
+let ANNOTATE_BLOCKED_PREV = "#@:_/.-=?&%+~"
+
+// 半角または全角の数字か
+@is_digit(c) {
+	let cp = c.codepoint_at(0)
+	(cp >= 48 && cp <= 57) || (cp >= 65296 && cp <= 65305)
+}
+
+// 半角英字か
+@is_ascii_letter(c) {
+	let cp = c.codepoint_at(0)
+	(cp >= 65 && cp <= 90) || (cp >= 97 && cp <= 122)
+}
+
+@is_space(c) {
+	c.trim() == ""
+}
+
+// i 文字目から URL が始まるか
+@starts_url(chars, i) {
+	if (chars[i] != "h") return false
+	chars.slice(i, i + 7).join() == "http://" || chars.slice(i, i + 8).join() == "https://"
+}
+
+// 番号の前後の文字から、変換してよい位置にあるかを判定する
+@annotatable(prev, next) {
+	if (prev != "" && (is_ascii_letter(prev) || ANNOTATE_BLOCKED_PREV.incl(prev))) return false
+	if (next != "" && is_ascii_letter(next)) return false
+	true
+}
+
+@annotate(text) {
+	let chars = text.to_char_arr()
+	let len = chars.len
+	let buf = []
+	var i = 0
+	// バッククォートで囲まれたコードの中か（``` のコードブロックも同じ扱いになる）
+	var in_code = false
+	loop {
+		if (i >= len) break
+		let c = chars[i]
+
+		if (c == "`") {
+			in_code = !in_code
+			buf.push(c)
+			i += 1
+			continue
+		}
+		if (in_code || !(is_digit(c) || starts_url(chars, i))) {
+			buf.push(c)
+			i += 1
+			continue
+		}
+
+		// URL は空白まで読み飛ばす
+		if (starts_url(chars, i)) {
+			loop {
+				if (i >= len) break
+				if (is_space(chars[i])) break
+				buf.push(chars[i])
+				i += 1
+			}
+			continue
+		}
+
+		// 数字の並びを最後まで読む
+		var j = i
+		loop {
+			if (j >= len) break
+			if (!is_digit(chars[j])) break
+			j += 1
+		}
+		let digits = chars.slice(i, j).join()
+		buf.push(digits)
+		let prev = if (i == 0) "" else chars[i - 1]
+		let next = if (j >= len) "" else chars[j]
+		if (j - i == 4 && annotatable(prev, next)) {
+			let item = lookup(normalize(digits))
+			if (item != null) buf.push(`（{item.name}）`)
+		}
+		i = j
+	}
+	buf.join()
+}
+
+// プラグイン本体: ノートを表示する直前に、本文と CW の番号にメニュー名を添える
+// 書き換わるのは自分の画面の表示だけで、ノート自体は変更しない
+
+@annotate_note(note) {
+	if (note.text != null) note.text = annotate(note.text)
+	if (note.cw != null) note.cw = annotate(note.cw)
+	note
+}
+
+Plugin:register_note_view_interruptor(@(note) {
+	annotate_note(note)
+	// リノート・引用元のノート
+	if (note.renote != null) annotate_note(note.renote)
+	note
+})
